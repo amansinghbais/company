@@ -95,6 +95,10 @@ const actions: ActionTree<UtilState, RootState> = {
     commit(types.UTIL_SHIPMENT_METHOD_TYPES_UPDATED, shipmentMethodTypes)
   },
 
+  async updateIsHelperModeOn({ commit, state }) {
+    commit(types.UTIL_IS_HELPER_MODE_ON_UPDATED, !state.isHelperModeOn)
+  },
+
   async clearUtilState({ commit }) {
     commit(types.UTIL_CLEARED)
   }

@@ -19,6 +19,9 @@ const mutations: MutationTree <UtilState> = {
   [types.UTIL_SHIPMENT_METHOD_TYPES_UPDATED] (state, payload) {
     state.shipmentMethodTypes = payload;
   },
+  [types.UTIL_IS_HELPER_MODE_ON_UPDATED] (state, payload) {
+    state.isHelperModeOn = payload;
+  },
   [types.UTIL_CLEARED] (state) {
     state.facilityGroups = []
     state.operatingCountries = []

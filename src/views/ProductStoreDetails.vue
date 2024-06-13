@@ -41,7 +41,7 @@
         </div>
 
         <section>
-          <ion-card>
+          <ion-card @click="isHelperModeOn ? searchAi($event, 'order') : ''">
             <ion-card-header>
               <ion-card-title>{{ translate("Order") }}</ion-card-title>
             </ion-card-header>
@@ -97,7 +97,7 @@
             </ion-list>
           </ion-card>
 
-          <ion-card>
+          <ion-card @click="isHelperModeOn ? searchAi($event, 'brokering') : ''">
             <ion-card-header>
               <ion-card-title>{{ translate("Brokering") }}</ion-card-title>
             </ion-card-header>
@@ -159,7 +159,7 @@
           </ion-card>
 
           <div>
-            <ion-card>
+            <ion-card @click="isHelperModeOn ? searchAi($event, 'fulfillment') : ''">
               <ion-card-header>
                 <ion-card-title>{{ translate("Fulfillment") }}</ion-card-title>
               </ion-card-header>
@@ -197,7 +197,7 @@
               </ion-list>
             </ion-card>
 
-            <ion-card>
+            <ion-card @click="isHelperModeOn ? searchAi($event, 'store pickup') : ''">
               <ion-card-header>
                 <ion-card-title>{{ translate("Store pickup") }}</ion-card-title>
               </ion-card-header>
@@ -217,7 +217,7 @@
         </section>
 
         <section>
-          <ion-card>
+          <ion-card @click="isHelperModeOn ? searchAi($event, 'inventory') : ''">
             <ion-card-header>
               <ion-card-title>{{ translate("Inventory") }}</ion-card-title>
             </ion-card-header>
@@ -257,7 +257,7 @@
             </ion-list>
           </ion-card>
 
-          <ion-card>
+          <ion-card @click="isHelperModeOn ? searchAi($event, 'product') : ''">
             <ion-card-header>
               <ion-card-title>{{ translate("Product") }}</ion-card-title>
             </ion-card-header>
@@ -346,7 +346,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonBackButton, IonButton, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonChip, IonHeader, IonIcon, IonInput, IonItem, IonItemDivider, IonLabel, IonList, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar, alertController, onIonViewWillEnter } from "@ionic/vue";
+import { IonBackButton, IonButton, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonChip, IonHeader, IonIcon, IonInput, IonItem, IonItemDivider, IonLabel, IonList, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar, alertController, popoverController, onIonViewWillEnter } from "@ionic/vue";
 import { addCircleOutline, closeCircleOutline, compassOutline, mapOutline, wineOutline } from "ionicons/icons";
 import { translate } from "@/i18n";
 import { useStore } from "vuex";
@@ -356,6 +356,8 @@ import logger from "@/logger";
 import { ProductStoreService } from "@/services/ProductStoreService";
 import emitter from "@/event-bus";
 import { DateTime } from "luxon";
+import { UtilService } from "@/services/UtilService";
+import GitbookSearchInfoModal from "@/components/GitbookSearchInfoModal.vue";
 
 const props = defineProps(["productStoreId"]);
 const store = useStore();
@@ -369,6 +371,7 @@ const settings = computed(() => store.getters["productStore/getCurrentStoreSetti
 const dbicCountriesCount = computed(() => store.getters["util/getDBICCountriesCount"])
 const productIdentifiers = computed(() => store.getters["util/getProductIdentifiers"])
 const shipmentMethodTypes = computed(() => store.getters["util/getShipmentMethodTypes"])
+const isHelperModeOn = computed(() => store.getters["util/isHelperModeOn"])
 
 onIonViewWillEnter(async() => {
   emitter.emit("presentLoader");
@@ -376,6 +379,37 @@ onIonViewWillEnter(async() => {
   if(productStore.value.daysToCancelNonPay) autoCancellationActive.value = true;
   emitter.emit("dismissLoader");
 })
+
+
+async function searchAi(event: any, query: string) {
+  let answer = {} as any;
+
+  emitter.emit("presentLoader", { message: "Fetching info..." })
+  try {
+    const resp = await UtilService.askQuery({ queryString: `What is ${query}` });
+    if(!hasError(resp)) {
+      answer = resp.data.answer;
+      console.log(answer);
+      
+    } else {
+      throw resp.data;
+    }
+  } catch(error: any) {
+    logger.error(error);
+  }
+  emitter.emit("dismissLoader");
+
+  if(answer.text) {
+    const popover = await popoverController.create({
+      component: GitbookSearchInfoModal,
+      cssClass: 'infoModal',
+      event,
+      componentProps: { queryString: `What is ${query}`, answer },
+    })
+
+    popover.present();
+  }
+}
 
 function getPreferredIdentification(id: string) {
   const identifications = settings.value['PRDT_IDEN_PREF']?.settingValue ? JSON.parse(settings.value['PRDT_IDEN_PREF'].settingValue) : {}
@@ -698,6 +732,13 @@ ion-card-header {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   align-items: start; 
+}
+
+.infoModal {
+  --width: 900px;
+  background-color: red;
+  color: yellow;
+  font-size: 1px;
 }
 
 @media screen and (min-width: 700px) {

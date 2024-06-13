@@ -17,6 +17,9 @@ const getters: GetterTree <UtilState, RootState> = {
   },
   getShipmentMethodTypes(state) {
     return state.shipmentMethodTypes;
+  },
+  isHelperModeOn(state) {
+    return state.isHelperModeOn;
   }
 }
 export default getters;

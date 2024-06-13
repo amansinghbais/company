@@ -76,6 +76,20 @@
             <ion-button @click="changeTimeZone()" slot="end" fill="outline" color="dark">{{ translate("Change") }}</ion-button>
           </ion-item>
         </ion-card>
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              {{ translate("Helper mode") }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            {{ translate("Allow user to get info of certain actions in the app using gitbook lens.") }}
+          </ion-card-content>
+          <ion-item lines="none">
+            <ion-toggle :checked="isHelperModeOn" @ionChange="updateHelperStatus($event)" >{{ translate("Helper mode") }}</ion-toggle>
+          </ion-item>
+        </ion-card>
       </section>
     </ion-content>
   </ion-page>
@@ -99,6 +113,7 @@ const appInfo = (process.env.VUE_APP_VERSION_INFO ? JSON.parse(process.env.VUE_A
 const userProfile = computed(() => store.getters["user/getUserProfile"])
 const oms = computed(() => store.getters["user/getInstanceUrl"])
 const omsRedirectionInfo = computed(() => store.getters["user/getOmsRedirectionInfo"])
+const isHelperModeOn = computed(() => store.getters["util/isHelperModeOn"])
 
 onMounted(() => {
   appVersion.value = appInfo.branch ? (appInfo.branch + "-" + appInfo.revision) : appInfo.tag;
@@ -120,6 +135,11 @@ function logout() {
 
 function getDateTime(time: any) {
   return time ? DateTime.fromMillis(time).toLocaleString({ ...DateTime.DATETIME_MED, hourCycle: "h12" }) : "";
+}
+
+function updateHelperStatus(event: any) {
+  event.stopImmediatePropagation();
+  store.dispatch("util/updateIsHelperModeOn");
 }
 
 function goToLaunchpad() {
